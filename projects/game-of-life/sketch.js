@@ -14,18 +14,30 @@ All other live cells die in the next generation. Similarly, all other dead cells
 
 let Size = 5;
 let Cells = [];
+let CellsMade;
 let simStarted;
 
 let sizeSlider;
 let startButton;
 let stopButton;
 let updateButton;
+let randomButton;
+
+let scene;
 
 function setup() 
 {
     simStarted = false;
+    CellsMade = false;
 
-    createCanvas(400, 400);
+    let scaledSize = windowWidth;
+    if(windowWidth > windowHeight)
+        scaledSize = windowHeight;
+
+    scaledSize -= 100;
+
+    scene = createCanvas(scaledSize, scaledSize);
+    scene.mouseClicked(getInput); // attach listener for
 
     initUI();
     pausedUI();
@@ -37,17 +49,21 @@ function draw()
     if(!simStarted)
         Size = sizeSlider.value();
 
-    background(220);
+    background(255);
 
-    if(simStarted)
+    if(CellsMade)
         drawCells();
 
     makeGrid();
 }
 
 function startSimulation()
-{
-    initCells();
+{   
+    if(!CellsMade)
+    {
+        initCells();
+        CellsMade = true;
+    }
 
     simStarted = true;
     runningUI();
@@ -59,8 +75,37 @@ function stopSimulation()
     pausedUI();
 }
 
+function getInput()
+{
+    if(!CellsMade)
+    {
+        initCells();
+        CellsMade = true;
+    }
+
+    let xPos = mouseX;
+    let yPos = mouseY;
+
+    xPos = round(Size * (xPos/width) - .5);
+    yPos = round(Size * (yPos/width) - .5);
+
+    if(xPos >= 0 && xPos < Size && yPos >= 0 && yPos < Size)
+    {
+        Cells[xPos][yPos].invert();
+    }
+
+}
+
 function updateSimulation()
 {
+    for(let x = 0; x < Size; x++)
+    {
+        for(let y = 0; y < Size; y++)
+        {
+            Cells[x][y].calcNeighbors();
+        }
+    }
+
     for(let x = 0; x < Size; x++)
     {
         for(let y = 0; y < Size; y++)
@@ -73,29 +118,36 @@ function updateSimulation()
 function initUI()
 {
     stopButton = createButton('Stop');
-    stopButton.position(0, 400);
+    stopButton.position(0, width);
     stopButton.mousePressed(stopSimulation);
-    stopButton.style('width', '400px');
+    stopButton.style('width', width + 'px');
 
     updateButton = createButton('Next Frame');
-    updateButton.position(0, 425);
+    updateButton.position(0, width + 25);
     updateButton.mousePressed(updateSimulation);
-    updateButton.style('width', '400px');
+    updateButton.style('width', width + 'px');
 
-    sizeSlider = createSlider(3, 10, 5, 1);
-    sizeSlider.position(0, 425);
-    sizeSlider.style('width', '400px');
+    randomButton = createButton('Randomize');
+    randomButton.position(0, width + 25);
+    randomButton.mousePressed(randomizeCells);
+    randomButton.style('width', width + 'px');
+
+    sizeSlider = createSlider(3, 15, 5, 1);
+    sizeSlider.position(0, width + 50);
+    sizeSlider.input(initCells);
+    sizeSlider.style('width', width + 'px');
 
     startButton = createButton('Start');
-    startButton.position(0, 400);
+    startButton.position(0, width);
     startButton.mousePressed(startSimulation);
-    startButton.style('width', '400px');
+    startButton.style('width', width + 'px');
 }
 
 function runningUI()
 {
     sizeSlider.hide();
     startButton.hide();
+    randomButton.hide();
 
     stopButton.show();
     updateButton.show();
@@ -108,18 +160,35 @@ function pausedUI()
 
     sizeSlider.show();
     startButton.show();
+    randomButton.show();
 }
 
 function initCells()
+{
+    CellsMade = false;
+
+    for(let x = 0; x < Size; x++)
+    {
+        Cells[x] = [];
+        for(let y = 0; y < Size; y++)
+        {
+            Cells[x][y] = new Cell(x, y, false);
+        }
+    }
+}
+
+function randomizeCells()
 {
     for(let x = 0; x < Size; x++)
     {
         Cells[x] = [];
         for(let y = 0; y < Size; y++)
         {
-            Cells[x][y] = new Cell((x * width/Size), (y * width/Size), ranBool());
+            Cells[x][y] = new Cell(x, y, ranBool());
         }
     }
+
+    CellsMade = true;
 }
 
 function ranBool()
@@ -162,6 +231,7 @@ class Cell
         this.x = x;
         this.y = y;
         this.alive = alive;
+        this.neighbors = 0;
     }
   
     display()
@@ -172,10 +242,67 @@ class Cell
             fill(255);
 
         strokeWeight(0);
-        rect(this.x, this.y, width/Size, width/Size);
+        rect((this.x * width/Size), (this.y * width/Size), width/Size, width/Size);
     }
 
     update()
+    {
+        if(this.alive)
+        {
+            switch (this.neighbors) 
+            {
+                case 0: this.alive = false; break;  //Underpopulation
+                case 1: this.alive = false; break;  //Underpopulation
+                case 2: this.alive = true;  break;  //Survives
+                case 3: this.alive = true;  break;  //Survives
+                case 4: this.alive = false; break;  //Overpopulation
+                case 5: this.alive = false; break;  //Overpopulation
+                case 6: this.alive = false; break;  //Overpopulation
+                case 7: this.alive = false; break;  //Overpopulation
+                case 8: this.alive = false; break;  //Overpopulation
+            }
+        }else
+        {
+            switch (this.neighbors) 
+            {
+                case 0: this.alive = false; break;  //Still Dead
+                case 1: this.alive = false; break;  //Still Dead
+                case 2: this.alive = false; break;  //Still Dead
+                case 3: this.alive = true;  break;  //Cell is born
+                case 4: this.alive = false; break;  //Still Dead
+                case 5: this.alive = false; break;  //Still Dead
+                case 6: this.alive = false; break;  //Still Dead
+                case 7: this.alive = false; break;  //Still Dead
+                case 8: this.alive = false; break;  //Still Dead
+            }
+        }
+    }
+
+    calcNeighbors()
+    {
+        let count = 0;
+
+        for(let y = this.y - 1; y < this.y + 2; y++)
+        {
+            for(let x = this.x - 1; x < this.x + 2; x++)
+            {   
+                if(x >= 0 && x < Size && y >= 0 && y < Size)
+                {
+                    if(Cells[x][y].alive)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        if(this.alive)
+            count--;
+
+        this.neighbors = count;
+    }
+
+    invert()
     {
         this.alive = !this.alive;
     }
