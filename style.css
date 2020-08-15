@@ -10,9 +10,9 @@ body
 
 #container
 {
-    height : 100%;
+    height : 1200px;
     background-color: #382d38;
-    overflow-y: scroll;
+    overflow: hidden;
 }
 
 p, h1
