@@ -1,0 +1,40 @@
+html, body 
+{
+    height: 100%;
+}
+
+body 
+{
+    background-color: #211921;
+}
+
+#container
+{
+    height : 100%;
+    background-color: #382d38;
+    overflow-y: scroll;
+}
+
+p, h1
+{
+    color : #FFFFFF;
+    font-family: "Lucida Sans Unicode";
+}
+
+a
+{
+    font-size : 25px;
+    font-family: "Lucida Sans Unicode";
+}
+
+.webtitle
+{
+    font-size : 50px;
+    text-align: center;
+}
+
+::-webkit-scrollbar 
+{
+    width: 0px;
+    background: transparent;
+}
