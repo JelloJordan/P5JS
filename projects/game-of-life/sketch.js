@@ -23,6 +23,9 @@ let stopButton;
 let updateButton;
 let randomButton;
 
+let centerOffset;
+let scaledSize;
+
 let scene;
 
 function setup() 
@@ -30,17 +33,46 @@ function setup()
     simStarted = false;
     CellsMade = false;
 
-    let scaledSize = windowWidth;
+    scaledSize = windowWidth;
     if(windowWidth > windowHeight)
         scaledSize = windowHeight;
 
     scaledSize -= 100;
 
-    scene = createCanvas(scaledSize, scaledSize);
+    scene = createCanvas(scaledSize, scaledSize)
     scene.mouseClicked(getInput); // attach listener for
+
+    updateCanvas();
 
     initUI();
     pausedUI();
+}
+
+function windowResized() 
+{
+
+    updateCanvas();
+
+    sizeSlider.remove();
+    startButton.remove();
+    randomButton.remove();
+    stopButton.remove();
+    updateButton.remove();
+    initUI();
+  
+}
+
+function updateCanvas()
+{
+    scaledSize = windowWidth;
+    if(windowWidth > windowHeight)
+        scaledSize = windowHeight;
+
+    scaledSize -= 100;
+    sce = resizeCanvas(scaledSize, scaledSize)
+
+    centerOffset = (windowWidth - width) / 2;
+    scene.position(centerOffset, 0);
 }
 
 function draw() 
@@ -49,7 +81,7 @@ function draw()
     if(!simStarted)
         Size = sizeSlider.value();
 
-    background(255);
+    background(0);
 
     if(CellsMade)
         drawCells();
@@ -118,27 +150,27 @@ function updateSimulation()
 function initUI()
 {
     stopButton = createButton('Stop');
-    stopButton.position(0, width);
+    stopButton.position(centerOffset, width);
     stopButton.mousePressed(stopSimulation);
     stopButton.style('width', width + 'px');
 
     updateButton = createButton('Next Frame');
-    updateButton.position(0, width + 25);
+    updateButton.position(centerOffset, width + 25);
     updateButton.mousePressed(updateSimulation);
     updateButton.style('width', width + 'px');
 
     randomButton = createButton('Randomize');
-    randomButton.position(0, width + 25);
+    randomButton.position(centerOffset, width + 25);
     randomButton.mousePressed(randomizeCells);
     randomButton.style('width', width + 'px');
 
-    sizeSlider = createSlider(3, 15, 5, 1);
-    sizeSlider.position(0, width + 50);
+    sizeSlider = createSlider(5, 20, 10, 1);
+    sizeSlider.position(centerOffset, width + 50);
     sizeSlider.input(initCells);
     sizeSlider.style('width', width + 'px');
 
     startButton = createButton('Start');
-    startButton.position(0, width);
+    startButton.position(centerOffset, width);
     startButton.mousePressed(startSimulation);
     startButton.style('width', width + 'px');
 }
@@ -215,7 +247,7 @@ function drawCells()
 
 function makeGrid()
 {
-    stroke(150);
+    stroke(100);
     strokeWeight(2);
     for(let i = 0; i < Size + 1; i++)
     {
@@ -237,9 +269,9 @@ class Cell
     display()
     {
         if(this.alive)
-            fill(0);
-        else
             fill(255);
+        else
+            fill(0);
 
         strokeWeight(0);
         rect((this.x * width/Size), (this.y * width/Size), width/Size, width/Size);
